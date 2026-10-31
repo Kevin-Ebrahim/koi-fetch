@@ -6,6 +6,11 @@ import random
 NODES = 20
 
 
+def motion_scale(width, height):
+    """Keep turning and swimming proportional in unusually small ponds."""
+    return max(.35, min(1.0, width / 58, height / 25))
+
+
 def new_swimmers(width, height, count=3):
     """Initialize three jointed fish at different sizes and colours."""
     rng = random.Random()
@@ -32,7 +37,7 @@ def new_swimmers(width, height, count=3):
             'nodes': nodes,
             'heading': heading,
             'wander': 0.0,
-            'speed': 12.0,
+            'speed': 12.0 * motion_scale(width, height),
             'turn': 0.0,
             'phase': rng.uniform(0, math.tau),
             'orbit_dir': direction,
@@ -56,6 +61,7 @@ def angle_diff(a, b):
 def resize(swimmers, food, old_width, old_height, width, height):
     """Move the existing population into a resized pond without resetting it."""
     x_ratio, y_ratio = width / old_width, height / old_height
+    speed_ratio = motion_scale(width, height) / motion_scale(old_width, old_height)
     scale = min(1.0, width / 58, height / 25)
     for fish in swimmers:
         hx, hy = fish['nodes'][0]
@@ -67,10 +73,14 @@ def resize(swimmers, food, old_width, old_height, width, height):
                           new_hy + (y - hy) * length_ratio)
                          for x, y in fish['nodes']]
         fish['length'] = length
+        fish['speed'] *= speed_ratio
         fish['orbit_radius'] *= min(width, height * 2) / min(old_width, old_height * 2)
     for pellet in food:
         pellet['x'] = clamp(pellet['x'] * x_ratio, 0, width * 2 - 1)
         pellet['y'] = clamp(pellet['y'] * y_ratio, 0, height * 4 - 1)
+        pellet['speed'] *= speed_ratio
+        pellet['vx'] *= speed_ratio
+        pellet['vy'] *= speed_ratio
 
 
 def new_food(width, height, count=9):
@@ -78,7 +88,7 @@ def new_food(width, height, count=9):
     food = []
     for _ in range(count):
         heading = rng.uniform(-math.pi, math.pi)
-        speed = rng.uniform(3.0, 4.5)
+        speed = rng.uniform(3.0, 4.5) * motion_scale(width, height)
         food.append({'x': rng.uniform(8, width * 2 - 8),
                      'y': rng.uniform(8, height * 4 - 8),
                      'vx': math.cos(heading) * speed, 'vy': math.sin(heading) * speed,
@@ -89,6 +99,7 @@ def new_food(width, height, count=9):
 
 
 def step_food(food, swimmers, dt, elapsed, width, height):
+    scale = motion_scale(width, height)
     for pellet in food:
         if not pellet['alive']:
             if elapsed < pellet['respawn_at']:
@@ -110,12 +121,12 @@ def step_food(food, swimmers, dt, elapsed, width, height):
             hx, hy = fish['nodes'][0]
             ox, oy = pellet['x'] - hx, pellet['y'] - hy
             distance = math.hypot(ox, oy)
-            if .001 < distance < 22:
-                weight = (1 - distance / 22) * 2
+            if .001 < distance < 22 * scale:
+                weight = (1 - distance / (22 * scale)) * 2
                 dx += ox / distance * weight
                 dy += oy / distance * weight
                 threatened = True
-        margin = 12
+        margin = 12 * scale
         dx += 3 * max(0, (margin - pellet['x']) / margin)
         dx -= 3 * max(0, (pellet['x'] - (width * 2 - margin)) / margin)
         dy += 3 * max(0, (margin - pellet['y']) / margin)
@@ -222,7 +233,8 @@ def step_swimmers(swimmers, food, dt, elapsed, width, height):
         turn = clamp(angle_diff(heading, desired), -agility * dt, agility * dt)
         fish['heading'] += turn
         fish['turn'] += (turn / dt - fish['turn']) * min(1, dt * 3)
-        target_speed = min(24, (12 + length * .016) * (1.45 + closing * 1.5 if hunting else 1))
+        scale = motion_scale(width, height)
+        target_speed = min(24, (12 + length * .016) * (1.45 + closing * 1.5 if hunting else 1)) * scale
         fish['speed'] += (target_speed - fish['speed']) * min(1, dt * 1.1)
         fish['phase'] += dt * (2 + fish['speed'] / 9.6)
         fish['nodes'][0] = (hx + math.cos(fish['heading']) * fish['speed'] * dt,

@@ -1,4 +1,4 @@
-"""Classic and Omarchy-derived terminal palettes."""
+"""Classic, terminal-palette and Omarchy-derived pond colours."""
 
 from pathlib import Path
 import re
@@ -46,7 +46,8 @@ def theme_palettes(theme_file):
 class ThemeColours:
     """Refresh after a theme change, retaining the last valid palette on errors."""
 
-    def __init__(self, theme_file=THEME_FILE):
+    def __init__(self, mode='classic', theme_file=THEME_FILE):
+        self.mode = mode
         self.theme_file = theme_file
         self.signature = None
         self.next_check = 0.0
@@ -61,8 +62,18 @@ class ThemeColours:
                 ((104,55,25),(186,91,31),(224,122,42),(244,151,61),(255,180,87),(255,206,131),(255,226,170)),
             )
         )
+        if mode in ('auto', 'terminal', 'omarchy'):
+            # ANSI palette entries follow the terminal's own configured theme,
+            # including theme changes and light backgrounds, without probing it.
+            self.colours = tuple(
+                ('', f'0;2;{code}', f'0;2;{code}', f'0;{code}', f'0;{code}',
+                 f'0;1;{code}', f'0;1;{code}', f'0;{code + 60}')
+                for code in (33, 31, 34, 32, 36)
+            )
 
     def poll(self, now):
+        if self.mode in ('classic', 'terminal'):
+            return
         if now < self.next_check:
             return
         self.next_check = now + 1.0

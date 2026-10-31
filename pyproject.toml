@@ -9,7 +9,11 @@ description = "An animated terminal pond with optional Fastfetch integration"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = []
-license-files = ["ASCII-SHARKS-LICENSE"]
+license = "MIT"
+license-files = ["LICENSE", "ASCII-SHARKS-LICENSE"]
+
+[project.urls]
+Repository = "https://github.com/Kevin-Ebrahim/koi-fetch"
 
 [project.scripts]
 koi-fetch = "koi_fetch.cli:main"
