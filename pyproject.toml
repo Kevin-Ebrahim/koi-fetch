@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "koi-fetch"
+version = "0.1.0"
+description = "An animated terminal pond with optional Fastfetch integration"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+license-files = ["ASCII-SHARKS-LICENSE"]
+
+[project.scripts]
+koi-fetch = "koi_fetch.cli:main"
+
+[tool.setuptools.package-data]
+koi_fetch = ["data/*.pgm"]

@@ -1,33 +1,51 @@
 # Koi Fetch
 
-An animated pond of koi that swim beside your existing Fastfetch information.
-The koi pursue small swimming food creatures, which reappear after being eaten.
-Press **Ctrl+C** to leave the pond and return to the terminal.
+An animated terminal pond where koi swim and hunt tiny food creatures. By
+default, the pond appears beside your existing Fastfetch information.
 
-## Run
+## Install
 
-You need Python 3, Fastfetch, and a terminal with Unicode Braille and true-colour
-support. The animation needs enough terminal space for the pond and Fastfetch;
-it displays the required size if the window is too small.
+Requires Python 3.9 or newer and a terminal with Unicode Braille and true-colour
+support. Fastfetch is needed for the default mode; Omarchy is optional.
 
-From this directory, run the original, fixed-colour version:
+To install from a local checkout with [pipx](https://pipx.pypa.io/):
 
 ```sh
-python3 koi-fetch.py
+pipx install .
 ```
 
-On Omarchy, run the theme-aware version instead:
+Alternatively, run directly from the checkout:
 
 ```sh
-python3 koi-fetch-themed.py
+PYTHONPATH=src python3 -m koi_fetch
 ```
 
-The theme-aware version reads the active Omarchy palette and updates the koi,
-food and water particles when the theme changes. If the palette is unavailable,
-it retains the last valid colours or uses its built-in defaults. Fastfetch's
-system information is captured at startup.
+## Use
 
-Both versions load `koi-sprite.pgm` from the same directory as the script.
+```sh
+koi-fetch                            # Pond beside Fastfetch; automatic colours
+koi-fetch --fullscreen               # Pond fills the terminal; no Fastfetch needed
+koi-fetch --theme classic            # Fixed original colours
+koi-fetch --theme omarchy            # Follow the active Omarchy theme
+koi-fetch --fullscreen --theme classic
+koi-fetch --help
+```
+
+The default `--theme auto` follows Omarchy when its palette is available, and
+otherwise uses the classic colours. With Omarchy, the fish, food and particles
+update when the theme changes. Explicit `--theme omarchy` reports an error if
+the active palette is unavailable. Fastfetch information is captured at startup.
+
+Press **Ctrl+C** to leave the pond. The pond responds to terminal resizing;
+when the terminal is too small, it displays the required minimum size.
+
+## Development
+
+```sh
+PYTHONPATH=src python3 -m unittest discover -s tests
+```
+
+`src/koi_fetch/data/koi-sprite.pgm` is bundled with the package.
 `koi-source.png` is the source artwork used to make that sprite.
 
 ## Attribution
